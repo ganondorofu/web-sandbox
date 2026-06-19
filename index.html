@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>クライアントサイド制約 突破サンドボックス</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<h1>クライアントサイド制約 突破サンドボックス</h1>
+
+<p>
+HTML の <code>maxlength</code>、ファイルの <code>accept</code>、<code>disabled</code>、
+<code>required</code>、<code>min/max</code> といった
+<strong>フロントエンドの制約はセキュリティ境界ではない</strong>ことを実演します。
+ブラウザは利用者の手元で動くので、利用者は何でも書き換えられます。
+</p>
+
+<div class="danger">
+<strong>結論（先に）:</strong> クライアントサイドの検証は
+「正しい利用者の操作ミスを減らす UX のため」のもの。
+<strong>本当の検証・認可・サイズ制限は必ずサーバー側で行う</strong>こと。
+このサイトは攻撃ツールではなく、その理由を体感するための教材です。
+</div>
+
+<h2>デモ一覧</h2>
+<ul class="demo-list">
+  <li><a href="demos/maxlength.html">1. maxlength（最大文字数）を突破</a></li>
+  <li><a href="demos/file-upload.html">2. ファイルアップロード制限（accept / サイズ）を突破</a></li>
+  <li><a href="demos/disabled-readonly.html">3. disabled / readonly を解除</a></li>
+  <li><a href="demos/required-pattern.html">4. required / pattern / type 検証を突破</a></li>
+  <li><a href="demos/hidden-field.html">5. hidden フィールド改ざん（価格改ざん）</a></li>
+  <li><a href="demos/select-options.html">6. select の選択肢制限を突破（権限昇格）</a></li>
+  <li><a href="demos/number-range.html">7. number の min / max を突破</a></li>
+  <li><a href="demos/js-validation.html">8. JavaScript バリデーションを無効化</a></li>
+  <li><a href="demos/textarea-filter.html">9. 禁止ワードフィルタ / textarea maxlength を突破</a></li>
+</ul>
+
+<h2>そもそも、なぜ突破できるのか</h2>
+<p>サーバーから見ると、リクエストは「どのブラウザから来たか」「どんな UI を経由したか」を区別できません。
+攻撃者（あるいは普通の利用者）は次の手段でフロントの制約をすべて回避できます。</p>
+<ul>
+  <li>DevTools の Elements で属性を削除・編集（<code>maxlength</code> 削除、<code>disabled</code> 解除など）</li>
+  <li>DevTools の Console から JS で値や DOM を直接操作</li>
+  <li>JavaScript を無効化（クライアント検証ごと無効化）</li>
+  <li>ブラウザを使わず <code>curl</code> / スクリプトで直接 HTTP リクエストを送信</li>
+  <li>プロキシ（Burp/mitmproxy 等）で送信途中のリクエストを書き換え</li>
+</ul>
+<p>各デモではページ内のボタンで上記と同等の操作を再現し、
+「<strong>サーバーが実際に受け取る値</strong>」を黒いパネルに表示します。
+画面上の制約に関係なく、その値がそのまま送られることが確認できます。</p>
+
+<div class="note">
+GitHub Pages 等の静的ホスティングには本物のサーバーがないため、
+「送信」は同一ページ内のモックで再現しています。
+実システムでは、この同じデータが本物のサーバーに届きます。
+</div>
+
+<p style="margin-top:2rem; font-size:.85rem; color:#666;">
+教育・防御目的のデモです。自分が権限を持たないシステムに対してこれらの手法を使わないでください。
+</p>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1. maxlength を突破</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div id="nav"></div>
+<h1>1. <code>maxlength</code>（最大文字数）を突破</h1>
+
+<p>この入力欄は <code>maxlength="10"</code> で「10文字まで」に見えます。
+しかし <code>maxlength</code> はキーボード入力を止めるだけで、値そのものを保証しません。</p>
+
+<div class="demo">
+  <form data-mock data-out="out">
+    <label>ニックネーム（HTML上は最大10文字）</label>
+    <input type="text" id="nick" name="nick" maxlength="10" value="abc">
+
+    <div class="controls" style="margin-top:.6rem;">
+      <button type="button" onclick="removeMax()">① maxlength 属性を削除</button>
+      <button type="button" onclick="setLong()">② JSで500文字を直接代入</button>
+      <button type="submit">サーバーへ送信（モック）</button>
+    </div>
+  </form>
+  <div id="out" class="out"></div>
+</div>
+
+<div class="note">
+<strong>突破の理屈:</strong>
+<code>maxlength</code> は「タイプ／ペースト時の入力制限」にすぎません。
+DevTools で属性を消す（①相当）、あるいは JS で <code>input.value = ...</code> と
+直接代入する（②）と、何文字でも入ります。<code>curl</code> で送ればそもそも無関係です。
+</div>
+
+<h2>正しい対策</h2>
+<p>サーバー側で受信文字列の長さを必ず検証し、超過したら拒否する（DBカラム長にも頼らない）。</p>
+
+<script src="../js/common.js"></script>
+<script>
+  function removeMax() {
+    document.getElementById('nick').removeAttribute('maxlength');
+    alert('maxlength を削除しました。手入力で11文字以上打てます。');
+  }
+  function setLong() {
+    document.getElementById('nick').value = 'A'.repeat(500);
+    alert('JSで500文字を代入しました。maxlength は適用されません。');
+  }
+</script>
+</body>
+</html>

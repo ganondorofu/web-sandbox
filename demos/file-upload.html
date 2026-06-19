@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2. ファイルアップロード制限を突破</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div id="nav"></div>
+<h1>2. ファイルアップロード制限（<code>accept</code> / サイズ）を突破</h1>
+
+<p>この欄は <code>accept="image/png,image/jpeg"</code> で「画像だけ」、
+さらに JS で「100KB まで」に制限しているように見えます。どちらも突破できます。</p>
+
+<div class="demo">
+  <form data-mock data-out="out" id="form">
+    <label>アイコン画像（PNG/JPEG・100KBまで のつもり）</label>
+    <input type="file" id="file" name="avatar" accept="image/png,image/jpeg">
+
+    <div class="controls" style="margin-top:.6rem;">
+      <button type="button" onclick="removeAccept()">① accept を削除（全ファイル選択可に）</button>
+      <button type="button" onclick="injectFile()">② JSで偽ファイルを生成して投入（2MBの .exe）</button>
+      <button type="button" onclick="checkAndSend()">サーバーへ送信（クライアント側サイズチェック付き）</button>
+    </div>
+  </form>
+  <div id="out" class="out"></div>
+</div>
+
+<div class="note">
+<strong>突破の理屈:</strong>
+<code>accept</code> は OS のファイル選択ダイアログの<strong>初期フィルタ</strong>にすぎません
+（「すべてのファイル」に切替可能、ドラッグ&ドロップも素通り）。
+②では <code>DataTransfer</code> を使い、JS から任意の種類・サイズのファイルを
+<code>input.files</code> に直接セットしています。
+クライアントのサイズチェックも、JSを書き換えれば（あるいはcurl送信すれば）回避されます。
+</div>
+
+<h2>正しい対策</h2>
+<p>サーバー側でMIME/拡張子だけでなく実際の中身（マジックバイト）を検査し、
+サイズ上限・保存先・実行権限をサーバーで強制する。</p>
+
+<script src="../js/common.js"></script>
+<script>
+  const MAX = 100 * 1024; // 100KB のつもりのクライアント制限
+
+  function removeAccept() {
+    document.getElementById('file').removeAttribute('accept');
+    alert('accept を削除しました。ダイアログで任意のファイルを選べます。');
+  }
+
+  // accept="image/*" を無視して、任意タイプ・任意サイズの File を input にセット
+  function injectFile() {
+    const bytes = new Uint8Array(2 * 1024 * 1024); // 2MB
+    const file = new File([bytes], 'malware.exe', { type: 'application/x-msdownload' });
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    document.getElementById('file').files = dt.files;
+    logLine('out', 'JSで 2MB の malware.exe を input.files に投入しました（accept無視）。', 'warn');
+  }
+
+  // 「正しく書いたつもり」のクライアント側サイズチェック。だが…
+  function checkAndSend() {
+    const f = document.getElementById('file').files[0];
+    if (f && f.size > MAX) {
+      alert('クライアント検証: 100KB を超えています。送信しません。\n（※でも下の「送信」はモックなので、攻撃者はこの関数を通さず直接送れます）');
+    }
+    // 攻撃者視点: この分岐を無視して送る = サーバーには届く
+    inspect(document.getElementById('form'), 'out');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+/* 最低限のスタイル。見やすさのためだけ。 */
+* { box-sizing: border-box; }
+body {
+  font-family: system-ui, sans-serif;
+  line-height: 1.6;
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 1rem;
+  color: #1a1a1a;
+}
+h1 { font-size: 1.5rem; }
+h2 { font-size: 1.15rem; margin-top: 1.5rem; }
+code { background: #f0f0f0; padding: 0 .25em; border-radius: 3px; }
+a { color: #0645ad; }
+
+#nav { margin-bottom: 1rem; font-size: .9rem; }
+
+.demo {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+.controls button {
+  margin: .2rem .3rem .2rem 0;
+  padding: .3rem .6rem;
+  cursor: pointer;
+}
+label { display: block; margin: .4rem 0 .1rem; font-size: .9rem; }
+input, select, textarea { padding: .3rem; font: inherit; }
+input[type="text"], input[type="number"], textarea, select { width: 100%; }
+
+.out {
+  background: #111;
+  color: #0f0;
+  font-family: ui-monospace, monospace;
+  font-size: .85rem;
+  padding: .6rem;
+  margin-top: .6rem;
+  border-radius: 4px;
+  min-height: 2.5rem;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+.out .head { color: #ff0; }
+.out .warn { color: #f66; }
+
+.note { background: #fff8e1; border-left: 4px solid #fbc02d; padding: .5rem .8rem; font-size: .9rem; }
+.danger { background: #ffebee; border-left: 4px solid #e53935; padding: .5rem .8rem; font-size: .9rem; }
+ul.demo-list { padding-left: 1.2rem; }
+ul.demo-list li { margin: .3rem 0; }
