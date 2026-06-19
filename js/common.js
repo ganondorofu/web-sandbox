@@ -45,8 +45,3 @@ document.addEventListener('submit', function (e) {
     inspect(f, f.getAttribute('data-out') || 'out');
   }
 });
-
-document.addEventListener('DOMContentLoaded', function () {
-  const nav = document.getElementById('nav');
-  if (nav) nav.innerHTML = '<a href="../index.html">&larr; 一覧へ戻る</a>';
-});

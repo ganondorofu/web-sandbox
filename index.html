@@ -9,55 +9,235 @@
 <body>
 <h1>クライアントサイド制約 突破サンドボックス</h1>
 
-<p>
-HTML の <code>maxlength</code>、ファイルの <code>accept</code>、<code>disabled</code>、
-<code>required</code>、<code>min/max</code> といった
-<strong>フロントエンドの制約はセキュリティ境界ではない</strong>ことを実演します。
-ブラウザは利用者の手元で動くので、利用者は何でも書き換えられます。
-</p>
+<!-- 1. maxlength -->
+<section class="demo">
+  <h2>1. <code>maxlength="10"</code> を突破</h2>
+  <form data-mock data-out="out1">
+    <input type="text" name="nick" id="d1-nick" maxlength="10" value="abc">
+    <div class="controls">
+      <button type="button" onclick="d1RemoveMax()">maxlength 削除</button>
+      <button type="button" onclick="d1SetLong()">JSで500文字代入</button>
+      <button type="submit">送信</button>
+    </div>
+  </form>
+  <div id="out1" class="out"></div>
+</section>
 
-<div class="danger">
-<strong>結論（先に）:</strong> クライアントサイドの検証は
-「正しい利用者の操作ミスを減らす UX のため」のもの。
-<strong>本当の検証・認可・サイズ制限は必ずサーバー側で行う</strong>こと。
-このサイトは攻撃ツールではなく、その理由を体感するための教材です。
-</div>
+<!-- 2. file upload -->
+<section class="demo">
+  <h2>2. ファイル <code>accept="image/*"</code> / サイズ制限を突破</h2>
+  <form id="d2-form">
+    <input type="file" name="avatar" id="d2-file" accept="image/png,image/jpeg">
+    <div class="controls">
+      <button type="button" onclick="d2RemoveAccept()">accept 削除</button>
+      <button type="button" onclick="d2Inject()">JSで2MBの.exeを投入</button>
+      <button type="button" onclick="d2Send()">送信</button>
+    </div>
+  </form>
+  <div id="out2" class="out"></div>
+</section>
 
-<h2>デモ一覧</h2>
-<ul class="demo-list">
-  <li><a href="demos/maxlength.html">1. maxlength（最大文字数）を突破</a></li>
-  <li><a href="demos/file-upload.html">2. ファイルアップロード制限（accept / サイズ）を突破</a></li>
-  <li><a href="demos/disabled-readonly.html">3. disabled / readonly を解除</a></li>
-  <li><a href="demos/required-pattern.html">4. required / pattern / type 検証を突破</a></li>
-  <li><a href="demos/hidden-field.html">5. hidden フィールド改ざん（価格改ざん）</a></li>
-  <li><a href="demos/select-options.html">6. select の選択肢制限を突破（権限昇格）</a></li>
-  <li><a href="demos/number-range.html">7. number の min / max を突破</a></li>
-  <li><a href="demos/js-validation.html">8. JavaScript バリデーションを無効化</a></li>
-  <li><a href="demos/textarea-filter.html">9. 禁止ワードフィルタ / textarea maxlength を突破</a></li>
-</ul>
+<!-- 3. disabled / readonly -->
+<section class="demo">
+  <h2>3. <code>disabled</code> / <code>readonly</code> を解除</h2>
+  <form data-mock data-out="out3">
+    <label>rank (readonly)</label>
+    <input type="text" name="rank" id="d3-rank" value="bronze" readonly>
+    <label>is_admin (disabled)</label>
+    <input type="text" name="is_admin" id="d3-admin" value="false" disabled>
+    <div class="controls">
+      <button type="button" onclick="d3Unlock()">解除</button>
+      <button type="button" onclick="d3Escalate()">gold / true に書換</button>
+      <button type="submit" id="d3-send" disabled>送信</button>
+    </div>
+  </form>
+  <div id="out3" class="out"></div>
+</section>
 
-<h2>そもそも、なぜ突破できるのか</h2>
-<p>サーバーから見ると、リクエストは「どのブラウザから来たか」「どんな UI を経由したか」を区別できません。
-攻撃者（あるいは普通の利用者）は次の手段でフロントの制約をすべて回避できます。</p>
-<ul>
-  <li>DevTools の Elements で属性を削除・編集（<code>maxlength</code> 削除、<code>disabled</code> 解除など）</li>
-  <li>DevTools の Console から JS で値や DOM を直接操作</li>
-  <li>JavaScript を無効化（クライアント検証ごと無効化）</li>
-  <li>ブラウザを使わず <code>curl</code> / スクリプトで直接 HTTP リクエストを送信</li>
-  <li>プロキシ（Burp/mitmproxy 等）で送信途中のリクエストを書き換え</li>
-</ul>
-<p>各デモではページ内のボタンで上記と同等の操作を再現し、
-「<strong>サーバーが実際に受け取る値</strong>」を黒いパネルに表示します。
-画面上の制約に関係なく、その値がそのまま送られることが確認できます。</p>
+<!-- 4. required / pattern -->
+<section class="demo">
+  <h2>4. <code>required</code> / <code>pattern</code> / <code>type=email</code> を突破</h2>
+  <form data-mock data-out="out4" id="d4-form">
+    <label>email</label>
+    <input type="email" name="email" required value="not-an-email">
+    <label>zip (pattern=\d{7})</label>
+    <input type="text" name="zip" pattern="\d{7}" required value="abc">
+    <div class="controls">
+      <button type="button" onclick="d4Kill()">novalidate + 属性削除</button>
+      <button type="submit">送信</button>
+    </div>
+  </form>
+  <div id="out4" class="out"></div>
+</section>
 
-<div class="note">
-GitHub Pages 等の静的ホスティングには本物のサーバーがないため、
-「送信」は同一ページ内のモックで再現しています。
-実システムでは、この同じデータが本物のサーバーに届きます。
-</div>
+<!-- 5. hidden field -->
+<section class="demo">
+  <h2>5. <code>hidden</code> の価格を改ざん</h2>
+  <form data-mock data-out="out5">
+    <input type="hidden" name="item" value="premium-1y">
+    <input type="hidden" name="price" id="d5-price" value="12000">
+    <label>qty</label>
+    <input type="number" name="qty" value="1" min="1">
+    <div class="controls">
+      <button type="button" onclick="d5Tamper()">price を 1 円に</button>
+      <button type="submit">購入</button>
+    </div>
+  </form>
+  <div id="out5" class="out"></div>
+</section>
 
-<p style="margin-top:2rem; font-size:.85rem; color:#666;">
-教育・防御目的のデモです。自分が権限を持たないシステムに対してこれらの手法を使わないでください。
-</p>
+<!-- 6. select options -->
+<section class="demo">
+  <h2>6. <code>select</code> の選択肢を突破（admin 注入）</h2>
+  <form data-mock data-out="out6">
+    <select name="role" id="d6-role">
+      <option value="user">user</option>
+      <option value="guest">guest</option>
+    </select>
+    <div class="controls">
+      <button type="button" onclick="d6Inject()">admin を注入</button>
+      <button type="button" onclick="d6Force()">value を superadmin に</button>
+      <button type="submit">送信</button>
+    </div>
+  </form>
+  <div id="out6" class="out"></div>
+</section>
+
+<!-- 7. number range -->
+<section class="demo">
+  <h2>7. <code>number</code> / <code>range</code> の min・max を突破</h2>
+  <form data-mock data-out="out7">
+    <label>qty (min=1 max=5)</label>
+    <input type="number" name="qty" id="d7-qty" value="1" min="1" max="5">
+    <label>discount % (range 0–10)</label>
+    <input type="range" name="discount" id="d7-discount" value="0" min="0" max="10">
+    <span id="d7-dval">0</span>%
+    <div class="controls">
+      <button type="button" onclick="d7Overflow()">99999 / 100% に</button>
+      <button type="button" onclick="d7RemoveLimits()">min/max 削除</button>
+      <button type="submit">送信</button>
+    </div>
+  </form>
+  <div id="out7" class="out"></div>
+</section>
+
+<!-- 8. JS validation -->
+<section class="demo">
+  <h2>8. JS バリデーションを無効化</h2>
+  <form id="d8-form">
+    <label>coupon ("VALID" 以外を拒否)</label>
+    <input type="text" name="coupon" id="d8-coupon" value="HACK">
+    <div class="controls">
+      <button type="submit">通常送信（検証あり）</button>
+      <button type="button" onclick="d8Kill()">検証を無効化</button>
+      <button type="button" onclick="d8Direct()">検証を飛ばして送信</button>
+    </div>
+  </form>
+  <div id="out8" class="out"></div>
+</section>
+
+<!-- 9. textarea filter -->
+<section class="demo">
+  <h2>9. 禁止ワードフィルタ / textarea <code>maxlength</code> を突破</h2>
+  <form data-mock data-out="out9">
+    <textarea name="comment" id="d9-comment" maxlength="20" rows="3">hello</textarea>
+    <div class="controls">
+      <button type="button" onclick="d9Bypass()">JSで長文+禁止ワードを代入</button>
+      <button type="submit">送信</button>
+    </div>
+  </form>
+  <div id="out9" class="out"></div>
+</section>
+
+<script src="js/common.js"></script>
+<script>
+  // 1
+  function d1RemoveMax() { document.getElementById('d1-nick').removeAttribute('maxlength'); }
+  function d1SetLong() { document.getElementById('d1-nick').value = 'A'.repeat(500); }
+
+  // 2
+  function d2RemoveAccept() { document.getElementById('d2-file').removeAttribute('accept'); }
+  function d2Inject() {
+    const file = new File([new Uint8Array(2 * 1024 * 1024)], 'malware.exe', { type: 'application/x-msdownload' });
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    document.getElementById('d2-file').files = dt.files;
+    logLine('out2', '2MB の malware.exe を input.files に投入（accept無視）。', 'warn');
+  }
+  function d2Send() { inspect(document.getElementById('d2-form'), 'out2'); }
+
+  // 3
+  function d3Unlock() {
+    document.getElementById('d3-rank').readOnly = false;
+    document.getElementById('d3-admin').disabled = false;
+    document.getElementById('d3-send').disabled = false;
+  }
+  function d3Escalate() {
+    document.getElementById('d3-rank').value = 'gold';
+    document.getElementById('d3-admin').value = 'true';
+  }
+
+  // 4
+  function d4Kill() {
+    const f = document.getElementById('d4-form');
+    f.noValidate = true;
+    f.querySelectorAll('[required]').forEach(el => el.removeAttribute('required'));
+    f.querySelectorAll('[pattern]').forEach(el => el.removeAttribute('pattern'));
+  }
+
+  // 5
+  function d5Tamper() { document.getElementById('d5-price').value = '1'; }
+
+  // 6
+  function d6Inject() {
+    const sel = document.getElementById('d6-role');
+    const opt = document.createElement('option');
+    opt.value = 'admin'; opt.textContent = 'admin (注入)';
+    sel.appendChild(opt); sel.value = 'admin';
+  }
+  function d6Force() {
+    const sel = document.getElementById('d6-role');
+    sel.options[0].value = 'superadmin'; sel.selectedIndex = 0;
+  }
+
+  // 7
+  const d7d = document.getElementById('d7-discount');
+  d7d.addEventListener('input', () => document.getElementById('d7-dval').textContent = d7d.value);
+  function d7Overflow() {
+    document.getElementById('d7-qty').value = '99999';
+    d7d.value = '100'; document.getElementById('d7-dval').textContent = '100';
+  }
+  function d7RemoveLimits() {
+    ['d7-qty', 'd7-discount'].forEach(id => {
+      const el = document.getElementById(id);
+      el.removeAttribute('min'); el.removeAttribute('max');
+    });
+  }
+
+  // 8
+  const d8form = document.getElementById('d8-form');
+  d8form.onsubmit = function (e) {
+    e.preventDefault();
+    if (document.getElementById('d8-coupon').value !== 'VALID') {
+      logLine('out8', 'JS検証: 無効なクーポン。送信中止。', 'warn');
+      return false;
+    }
+    inspect(d8form, 'out8');
+  };
+  function d8Kill() {
+    d8form.onsubmit = null;
+    d8form.addEventListener('submit', function (e) { e.preventDefault(); inspect(d8form, 'out8'); }, { once: true });
+    logLine('out8', 'onsubmit を null 化。次の通常送信は検証されません。', 'warn');
+  }
+  function d8Direct() { inspect(d8form, 'out8'); }
+
+  // 9
+  const d9ta = document.getElementById('d9-comment');
+  d9ta.addEventListener('input', () => { d9ta.value = d9ta.value.replace(/spam/gi, '****'); });
+  function d9Bypass() {
+    d9ta.value = 'これは長い文章です。禁止ワード spam を含み、20文字をはるかに超えています。';
+    logLine('out9', 'JSで直接代入。spam も長文もそのまま残ります。', 'warn');
+  }
+</script>
 </body>
 </html>
